@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Adblock Test — проверка блокировщика рекламы</title>
-<meta name="description" content="Онлайн-тест блокировщика рекламы: приманки из EasyList и RU AdList, косметика, popup, AAB, JS-детекторы.">
+<title>Adblock Test — проверка блокировки загрузки рекламы</title>
+<meta name="description" content="Онлайн-тест: блокирует ли ваш адблок загрузку рекламных скриптов, баннеров и ad-сетей. Приманки соответствуют правилам EasyList и RU AdList.">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,7 +14,7 @@
       <div class="logo">AB</div>
       <div>
         <h1>Adblock Test</h1>
-        <p class="sub">Тест блокировщика рекламы: EasyList + RU AdList + косметика + popup/AAB</p>
+        <p class="sub">Тест блокировки <b>загрузки</b> рекламных ресурсов: EasyList + RU AdList + реальные ad-сети</p>
       </div>
     </div>
     <div class="actions">
@@ -25,35 +25,32 @@
   <section class="verdict" id="verdict">
     <div class="verdict-body">
       <div class="verdict-state waiting" id="verdict-state">Подготовка…</div>
-      <div class="verdict-note" id="verdict-note">Запускаю проверки.</div>
+      <div class="verdict-note" id="verdict-note">Запускаю проверки загрузки.</div>
     </div>
     <div class="score">
       <div class="score-num" id="score-num">—</div>
-      <div class="score-label">проверок заблокировано</div>
+      <div class="score-label">ресурсов не загрузилось</div>
     </div>
   </section>
 
   <div class="grid">
     <section class="panel">
-      <h2>Сетевые приманки <span class="hint">EasyList / RU AdList пути</span></h2>
-      <ul class="rows" id="rows-network"><li class="empty">ожидание…</li></ul>
+      <h2>Приманки по правилам списков <span class="hint">загружаются с этого же домена</span></h2>
+      <ul class="rows" id="rows-bait"><li class="empty">ожидание…</li></ul>
     </section>
     <section class="panel">
-      <h2>JS-детекторы <span class="hint">приёмы реальных сайтов</span></h2>
+      <h2>Реальные ad-ресурсы <span class="hint">Google Ad Manager, AdX, Taboola, Outbrain</span></h2>
+      <ul class="rows" id="rows-remote"><li class="empty">ожидание…</li></ul>
+    </section>
+    <section class="panel wide">
+      <h2>Контрольные сигналы <span class="hint">перекрёстная проверка по загрузке скриптов</span></h2>
       <ul class="rows" id="rows-detector"><li class="empty">ожидание…</li></ul>
-    </section>
-    <section class="panel">
-      <h2>Косметика <span class="hint">ad-элементы на странице</span></h2>
-      <ul class="rows" id="rows-cosmetic"><li class="empty">ожидание…</li></ul>
-    </section>
-    <section class="panel">
-      <h2>Popup / interstitial / AAB <span class="hint">навязчивые форматы</span></h2>
-      <ul class="rows" id="rows-popup"><li class="empty">ожидание…</li></ul>
     </section>
   </div>
 
-  <p class="footnote">Тест полностью клиентский: статичные файлы-приманки, никаких бэкендов.
-  Совпадения фильтруются по generic-правилам EasyList/RU AdList — путь запроса содержит паттерн.</p>
+  <p class="footnote">Тест проверяет только факт загрузки ресурсов: каждый путь-приманка присутствует в списках
+  EasyList / RU AdList как generic-правило, поэтому блокировщик с включёнными списками обязан его оборвать.
+  Никакой косметики, popup-ов и имитаций показа — только сетевые запросы к скриптам, CSS и изображениям.</p>
 </div>
 
 <script src="app.js"></script>
