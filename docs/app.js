@@ -159,7 +159,8 @@
     var ran = (window.__adRan || []).length;
     // дальний хост ответил хотя бы на один запрос — значит сеть есть, даже если cdnjs недоступен
     var anyRemote = rowsOf('remote').some(function (r) { return r.status === 'loaded'; });
-    set('detector', 'online', 'Доступ в интернет', (online === true || anyRemote) ? 'online' : 'offline');
+    set('detector', 'online', 'Внешние хосты отвечают (cdnjs + ad-сети)',
+      (online === true || anyRemote) ? 'online' : 'offline');
     set('detector', 'ran', 'Выполнилось ad-скриптов (загрузка = выполнение): ' + ran + ' из ' + SCRIPT_BAITS,
       ran === 0 ? 'blocked' : (ran === SCRIPT_BAITS ? 'clear' : 'fired'));
     set('detector', 'allow', 'baits/controls/allow.js — обычный скрипт, не должен блокироваться',
