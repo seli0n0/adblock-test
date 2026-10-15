@@ -1,0 +1,13 @@
+{
+  "name": "adblock-test",
+  "version": "1.0.0",
+  "description": "Desktop Adblock test: local bait server + live results dashboard",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "server": "node src/standalone-server.js"
+  },
+  "devDependencies": {
+    "electron": "^33.4.11"
+  }
+}

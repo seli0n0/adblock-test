@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Adblock Test</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="brand">
+    <span class="logo">AB</span>
+    <div>
+      <h1>Adblock Test</h1>
+      <p class="sub" id="server-url">сервер не запущен</p>
+    </div>
+  </div>
+  <div class="actions">
+    <button id="btn-open" class="btn">Открыть страницу теста</button>
+    <button id="btn-reset" class="btn ghost">Начать заново</button>
+  </div>
+</header>
+
+<main>
+  <section class="verdict-card" id="verdict">
+    <div class="verdict-state" id="verdict-state">Ожидание результатов…</div>
+    <div class="verdict-note" id="verdict-note">
+      Тест идёт в браузере по умолчанию — там, где установлен ваш блокировщик рекламы.
+      Дождитесь окончания проверок на вкладке браузера.
+    </div>
+    <div class="score-wrap">
+      <div class="score-num" id="score-num">—</div>
+      <div class="score-label">проверок заблокировано</div>
+    </div>
+  </section>
+
+  <div class="grid">
+    <section class="panel" data-group="network">
+      <h2>Сетевые пробы <span class="hint">рекламные сети и bait-ресурсы</span></h2>
+      <ul class="rows" id="rows-network"></ul>
+    </section>
+    <section class="panel" data-group="detector">
+      <h2>JS-детекторы адблока <span class="hint">приёмы реальных сайтов</span></h2>
+      <ul class="rows" id="rows-detector"></ul>
+    </section>
+    <section class="panel" data-group="cosmetic">
+      <h2>Контентные метки и косметика <span class="hint">Ad-элементы на странице</span></h2>
+      <ul class="rows" id="rows-cosmetic"></ul>
+    </section>
+    <section class="panel" data-group="popup">
+      <h2>Popup / interstitial / AAB <span class="hint">навязчивые форматы</span></h2>
+      <ul class="rows" id="rows-popup"></ul>
+    </section>
+  </div>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>

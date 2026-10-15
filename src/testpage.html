@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Adblock Test — страница проверок</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 24px; background: #f4f5f7; color: #1c1e21; }
+  h1 { font-size: 20px; }
+  .zone { background: #fff; border: 1px solid #d8dbe0; border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; }
+  #status { font-size: 14px; color: #556; }
+  .bait-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .ad-banner, #adBanner, #googlead_iframe, .adsbygoogle, .adsbox, .text_ad {
+    background: #ffe9a8; border: 1px dashed #b78d00; padding: 10px 14px; font-size: 13px;
+  }
+</style>
+</head>
+<body>
+<h1>Adblock Test — тестовая страница</h1>
+<div class="zone"><p id="status">Запуск проверок…</p></div>
+
+<div class="zone">
+  <div class="bait-row">
+    <div class="adsbygoogle">Рекламный блок adsbygoogle</div>
+    <div id="adBanner">Ad Banner</div>
+    <div class="ad-banner"><b>Ad</b> — баннер .ad-banner</div>
+    <div id="googlead_iframe">googlead_iframe</div>
+    <div class="adsbox">adsbox bait</div>
+    <p class="text_ad" style="display:inline-block;border:1px dashed #b78d00;padding:6px 10px;margin:0">text_ad: Sponsored контент</p>
+  </div>
+</div>
+
+<!--EL_BAITS-->
+<script>
+(function () {
+  var ORIGIN = location.origin;
+  var RUN_ID = Date.now() + '-' + Math.floor(Math.random() * 1e6);
+  var t0 = Date.now();
+
+  function report(group, id, label, status, detail) {
+    var payload = { group: group, id: id, label: label, status: status,
+      detail: detail || '', page: 'test', run: RUN_ID, ts: Date.now() - t0 };
+    var body = JSON.stringify(payload);
+    function retry(n) {
+      fetch(ORIGIN + '/api/report', { method: 'POST', body: body,
+        headers: { 'Content-Type': 'application/json' }, mode: 'no-cors' })
+        .catch(function () { if (n > 0) setTimeout(function () { retry(n - 1); }, 800); });
+    }
+    retry(3);
+  }
+
+  function setStatus(txt) { document.getElementById('status').textContent = txt; }
+
+  // ---- сетевые пробы: реальные ad-сети ----
+  var NETWORK = [
+    { id: 'net-adsbygoogle', label: 'adsbygoogle.js (pagead2.googlesyndication.com)',
+      kind: 'script', url: 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js' },
+    { id: 'net-gpt', label: 'gpt.js (securepubads.g.doubleclick.net)',
+      kind: 'script', url: 'https://securepubads.g.doubleclick.net/tag/js/gpt.js' },
+    { id: 'net-googletag', label: 'gpt.js (googletagservices.com)',
+      kind: 'script', url: 'https://www.googletagservices.com/tag/js/gpt.js' },
+    { id: 'net-dc-img', label: 'ad.doubleclick.net (img)',
+      kind: 'img', url: 'https://ad.doubleclick.net/favicon.ico?x=1' },
+    { id: 'net-gsc-img', label: 'pagead2.googlesyndication.com (img)',
+      kind: 'img', url: 'https://pagead2.googlesyndication.com/favicon.ico' },
+    // ---- локальные bait-ресурсы ----
+    { id: 'loc-adsjs', label: '/scripts/ads.js?ad=1', kind: 'script',
+      url: ORIGIN + '/scripts/ads.js?ad=1' },
+    { id: 'loc-pagead', label: '/pagead/ads?client=ca-pub (паттерн ruadlist)', kind: 'script',
+      url: ORIGIN + '/pagead/ads?client=ca-pub-1234567890&slot=1' },
+    { id: 'loc-adv', label: '/adv/banner.gif (паттерн ruadlist)', kind: 'img',
+      url: ORIGIN + '/adv/banner.gif' },
+    { id: 'loc-banners', label: '/banners/rotator.gif (паттерн ruadlist)', kind: 'img',
+      url: ORIGIN + '/banners/rotator.gif' },
+    { id: 'loc-dt', label: '/ads/doubleclick/an.js', kind: 'script',
+      url: ORIGIN + '/ads/doubleclick/an.js' },
+    { id: 'loc-gsc', label: '/ads/googlesyndication/abp.js', kind: 'script',
+      url: ORIGIN + '/ads/googlesyndication/abp.js' },
+    { id: 'loc-adframe', label: '/ads/adframe.js (iframe)', kind: 'script',
+      url: ORIGIN + '/ads/adframe.js' },
+    { id: 'loc-banner', label: '/ads/banner.gif (img)', kind: 'img',
+      url: ORIGIN + '/ads/banner.gif' },
+    { id: 'loc-dcbanner', label: '/ads/doubleclick/banner.gif (img)', kind: 'img',
+      url: ORIGIN + '/ads/doubleclick/banner.gif' },
+  ];
+
+  var netDone = {};
+  function probe(p) {
+    var settled = false;
+    function finish(status) {
+      if (settled) return;
+      settled = true;
+      netDone[p.id] = status;
+      report('network', p.id, p.label, status);
+    }
+    function failOrVerify() {
+      // локальный ресурс: уточняем через fetch — настоящий блок сети
+      // блокирует и fetch тоже, а гонка при перезагрузке страницы — нет
+      if (p.url.indexOf(ORIGIN) === 0) {
+        fetch(p.url, { cache: 'no-store' }).then(function (res) {
+          finish(res.ok ? 'loaded' : 'not-loaded');
+        }).catch(function () { finish('not-loaded'); });
+      } else finish('not-loaded');
+    }
+    setTimeout(function () { finish('timeout'); }, 12000);
+    var el;
+    if (p.kind === 'script') {
+      el = document.createElement('script');
+      el.src = p.url;
+      el.onload = function () { finish('loaded'); };
+      el.onerror = failOrVerify;
+    } else {
+      el = document.createElement('img');
+      el.src = p.url;
+      el.onload = function () { finish('loaded'); };
+      el.onerror = failOrVerify;
+      el.style.display = 'none';
+    }
+    document.body.appendChild(el);
+  }
+
+  // контроль доступа в интернет (для честной оценки сетевых проб)
+  function connectivityControl(done) {
+    var el = document.createElement('script');
+    el.src = 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js';
+    el.onload = function () {
+      report('meta', 'ctl-online', 'Контроль доступа в интернет', 'online');
+      done();
+    };
+    el.onerror = function () {
+      report('meta', 'ctl-online', 'Контроль доступа в интернет', 'offline');
+      done();
+    };
+    document.body.appendChild(el);
+  }
+
+  // ---- косметические приманки ----
+  var COSMETIC = [
+    { sel: '.adsbygoogle', label: 'div.adsbygoogle' },
+    { sel: '#adBanner', label: 'div#adBanner' },
+    { sel: '.ad-banner', label: 'div.ad-banner' },
+    { sel: '#googlead_iframe', label: 'div#googlead_iframe' },
+    { sel: '.adsbox', label: 'div.adsbox' },
+    { sel: '.text_ad', label: 'p.text_ad' },
+  ];
+  function baitVisible(el) {
+    if (!el || !document.body.contains(el)) return false;
+    var cs = getComputedStyle(el);
+    if (cs.display === 'none' || cs.visibility === 'hidden' || cs.opacity === '0') return false;
+    var r = el.getBoundingClientRect();
+    if (r.width < 2 || r.height < 2) return false;
+    return true;
+  }
+  function checkCosmetic() {
+    COSMETIC.forEach(function (b) {
+      var el = document.querySelector(b.sel);
+      report('cosmetic', 'cos-' + b.sel, b.label,
+        baitVisible(el) ? 'visible' : (el ? 'hidden' : 'removed'));
+    });
+  }
+
+  // ---- interstitial + AAB (имитация полноэкранной рекламы и Ad Blocker Advisor) ----
+  function showOverlays(done) {
+    var inter = document.createElement('div');
+    inter.id = 'interstitial-ad';
+    inter.style.cssText = 'position:fixed;inset:0;z-index:99998;background:rgba(20,20,20,.92);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px';
+    inter.innerHTML = '<div><b>Ad</b> — Interstitial (полноэкранная реклама)</div>';
+    document.body.appendChild(inter);
+
+    var aab = document.createElement('div');
+    aab.id = 'aab-bumper';
+    aab.className = 'AAPS-300x250 aap-info';
+    aab.style.cssText = 'position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:99999;background:#ffd83d;border:1px solid #7a6200;padding:14px 18px;font-size:14px;border-radius:6px';
+    aab.innerHTML = 'Ad — AAB баннер (имитация Ad Blocker Advisor)';
+    document.body.appendChild(aab);
+
+    setTimeout(function () {
+      report('popup', 'ov-interstitial', 'Interstitial overlay',
+        baitVisible(inter) ? 'displayed' : 'suppressed');
+      report('popup', 'ov-aab', 'AAB / bumper (requestAdInteraction)',
+        baitVisible(aab) ? 'displayed' : 'suppressed');
+
+      // попытка всплывающего окна
+      var w = null;
+      try { w = window.open(ORIGIN + '/popup-ad', 'adtestpopup', 'width=340,height=240'); }
+      catch (e) { w = null; }
+      report('popup', 'pop-window', 'window.open popup-реклама',
+        w ? 'opened' : 'blocked');
+      // done шлём сразу: если popup забрал фокус, фоновая вкладка
+      // притормозит таймеры и отчёт мог бы не дойти
+      setStatus('Проверки завершены. Можно закрыть эту вкладку — результаты в окне приложения.');
+      report('meta', 'done', 'Набор проверок завершён', 'done');
+      if (w) setTimeout(function () { try { w.close(); } catch (e) {} }, 1200);
+      setTimeout(function () { inter.remove(); aab.remove(); done(); }, 1500);
+    }, 1200);
+  }
+
+  // ---- JS-детекторы адблока (классические приёмы сайтов) ----
+  function runDetectors() {
+    report('detector', 'det-canRunAds',
+      'canRunAds после загрузки /scripts/ads.js',
+      typeof canRunAds === 'undefined' ? 'fired' : 'clear');
+    report('detector', 'det-bootstrap',
+      'window.adsbygoogle после adsbygoogle.js',
+      typeof window.adsbygoogle === 'undefined' ? 'fired' : 'clear');
+    var gptOk = window.google && window.google.pubads;
+    report('detector', 'det-gpt',
+      'window.google.pubads после gpt.js',
+      gptOk ? 'clear' : 'fired');
+    report('detector', 'det-adifyplus',
+      'window.adifyPlus заглушка',
+      typeof window.adifyPlus === 'undefined' && netDone['net-gpt'] === 'not-loaded'
+        ? 'fired' : 'clear');
+  }
+
+  var pending = NETWORK.length;
+  NETWORK.forEach(function (p) {
+    probe(p);
+  });
+  // ---- приманки из реальных списков EasyList / RU AdList ----
+  (window.__ELBAITS || []).forEach(function (b, i) {
+    var p = {
+      id: 'loc-el' + i,
+      label: '[' + b.list + '] ' + b.rule,
+      kind: b.kind === 'image' ? 'img' : 'script',
+      url: ORIGIN + b.path + '&k=' + b.kind,
+    };
+    NETWORK.push(p);
+    pending += 1;
+    probe(p);
+  });
+
+  var meta = window.__ELMETA || [];
+  var metaStatus = meta.length === 0 ? 'none' :
+    (meta.every(function (m) { return m.from === 'net'; }) ? 'net' : 'cache');
+  report('meta', 'el-lists',
+    'Списки фильтров: ' + meta.map(function (m) { return m.name + ' (' + m.count + ' правил)'; }).join(', '),
+    metaStatus);
+
+  // waiters: ждём завершения всех проб или таймаут-страховку
+  var deadline = setTimeout(allDone, 14000);
+  function tickDone() {
+    pending -= 1;
+    if (pending === 0) { clearTimeout(deadline); allDone(); }
+  }
+  var origReport = report;
+  report = function (g, id, label, s, d) {
+    origReport(g, id, label, s, d);
+    if (g === 'network') tickDone();
+  };
+
+  var cosChecked = false;
+  function allDone() {
+    if (cosChecked) return;
+    cosChecked = true;
+    checkCosmetic();
+    runDetectors();
+    showOverlays(function () { /* cleanup complete */ });
+  }
+
+  connectivityControl(function () {});
+  setInterval(function () { if (!cosChecked && pending <= 0) allDone(); }, 300);
+})();
+</script>
+</body>
+</html>

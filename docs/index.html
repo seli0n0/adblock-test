@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adblock Test — проверка блокировщика рекламы</title>
+<meta name="description" content="Онлайн-тест блокировщика рекламы: приманки из EasyList и RU AdList, косметика, popup, AAB, JS-детекторы.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <div class="logo">AB</div>
+      <div>
+        <h1>Adblock Test</h1>
+        <p class="sub">Тест блокировщика рекламы: EasyList + RU AdList + косметика + popup/AAB</p>
+      </div>
+    </div>
+    <div class="actions">
+      <button id="btn-rerun" class="btn">Прогнать заново</button>
+    </div>
+  </header>
+
+  <section class="verdict" id="verdict">
+    <div class="verdict-body">
+      <div class="verdict-state waiting" id="verdict-state">Подготовка…</div>
+      <div class="verdict-note" id="verdict-note">Запускаю проверки.</div>
+    </div>
+    <div class="score">
+      <div class="score-num" id="score-num">—</div>
+      <div class="score-label">проверок заблокировано</div>
+    </div>
+  </section>
+
+  <div class="grid">
+    <section class="panel">
+      <h2>Сетевые приманки <span class="hint">EasyList / RU AdList пути</span></h2>
+      <ul class="rows" id="rows-network"><li class="empty">ожидание…</li></ul>
+    </section>
+    <section class="panel">
+      <h2>JS-детекторы <span class="hint">приёмы реальных сайтов</span></h2>
+      <ul class="rows" id="rows-detector"><li class="empty">ожидание…</li></ul>
+    </section>
+    <section class="panel">
+      <h2>Косметика <span class="hint">ad-элементы на странице</span></h2>
+      <ul class="rows" id="rows-cosmetic"><li class="empty">ожидание…</li></ul>
+    </section>
+    <section class="panel">
+      <h2>Popup / interstitial / AAB <span class="hint">навязчивые форматы</span></h2>
+      <ul class="rows" id="rows-popup"><li class="empty">ожидание…</li></ul>
+    </section>
+  </div>
+
+  <p class="footnote">Тест полностью клиентский: статичные файлы-приманки, никаких бэкендов.
+  Совпадения фильтруются по generic-правилам EasyList/RU AdList — путь запроса содержит паттерн.</p>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
